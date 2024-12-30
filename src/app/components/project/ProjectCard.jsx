@@ -13,7 +13,7 @@ export default function ProjectCard({ project }) {
   return (
     <div
       onClick={handleClick}
-      className="cursor-pointer bg-white shadow-lg p-4 rounded-lg hover:shadow-xl transition-shadow"
+      className="cursor-pointer bg-white shadow-lg p-4 rounded-lg hover:shadow-xl transition-shadow "
     >
       <h3 className="text-lg font-bold">{project.name}</h3>
       <p className="text-gray-600 mt-1">{project.description || "Sin descripción"}</p>

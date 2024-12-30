@@ -7,20 +7,20 @@ export default function Task({ task, projectId }) {
     return (
         <Link href={`${projectId}/task/${task.id}`} passHref>
             <div
-                className="flex justify-between p-4 bg-white border border-gray-200 rounded-lg shadow-sm cursor-pointer hover:bg-gray-100"
+                className="flex justify-between p-4 bg-white border border-gray-200 rounded-lg shadow-sm cursor-pointer hover:bg-[#f2f3ff]"
             >
                 <div className="flex-1">
-                    <h3 className="text-lg font-semibold">{task.title}</h3>
+                    <h3 className="text-lg font-semibold text-gray-600 ">{task.title}</h3>
                     
                 </div>
                 <div className="ml-4">
                     <span
-                        className={`px-3 py-1 text-sm font-semibold rounded-full ${
-                            task.status === "Completada"
-                                ? "bg-green-100 text-green-800"
-                                : task.status === "En progreso"
-                                ? "bg-yellow-100 text-yellow-800"
-                                : "bg-gray-100 text-gray-800"
+                        className={`px-3 py-1 text-sm font-semibold rounded-lg ${
+                            task.status === "COMPLETED"
+                                ? "bg-lime-500 text-green-800"
+                                : task.status === "IN_PROGRESS"
+                                ? "bg-sky-600 text-yellow-800"
+                                : "bg-yellow-400 text-gray-800"
                         }`}
                     >
                         {task.status}

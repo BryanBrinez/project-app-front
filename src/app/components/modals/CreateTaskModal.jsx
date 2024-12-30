@@ -84,8 +84,8 @@ export default function CreateTaskModal({ isOpen, onClose, projectId, onTaskCrea
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
             >
               <option value="PENDING">Pendiente</option>
-              <option value="In Progress">En progreso</option>
-              <option value="Completed">Completada</option>
+              <option value="IN_PROGRESS">En progreso</option>
+              <option value="COMPLETED">Completada</option>
             </select>
           </div>
 
