@@ -109,7 +109,7 @@ export default function Dashboard() {
 
         <div className="w-full flex items-center justify-between ">
           <h2 className="text-xl font-semibold mb-4">Proyectos</h2>
-          <div class="flex-grow border-b-2 border-dotted mx-4 relative top-1/2 transform -translate-y-1/2 mt-[-10px] "></div>
+          <div className="flex-grow border-b-2 border-dotted mx-4 relative top-1/2 transform -translate-y-1/2 mt-[-10px] "></div>
           <button
             onClick={() => setIsModalOpen(true)}
             className=" px-4 py-2 bg-[#3f51b5] text-white rounded-lg hover:bg-[#002284]"
