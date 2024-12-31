@@ -31,7 +31,6 @@ export default function CreateTaskModal({ isOpen, onClose, projectId, onTaskCrea
             }
           })
         );
-        console.log("los usersss",usersWithDetails)
         setUsers(usersWithDetails); // Establecemos los usuarios con la información adicional
         setLoading(false); // Ya terminamos de cargar
       } catch (err) {

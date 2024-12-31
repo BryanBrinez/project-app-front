@@ -25,6 +25,10 @@ export default function ProjectDetails() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [members, setMembers] = useState([]);
 
+    const [selectedStatus, setSelectedStatus] = useState(""); // Filtro por estado
+    const [selectedDate, setSelectedDate] = useState(""); // Filtro por fecha límite
+    const [selectedAssigned, setSelectedAssigned] = useState(""); // Filtro por asignado
+
     const fetchMembers = async () => {
         try {
             const response = await axios.get(
@@ -62,10 +66,23 @@ export default function ProjectDetails() {
 
         const fetchUsers = async () => {
             try {
-                const response = await axios.get(`http://localhost:3000/api/members/user/project/${id}`);
+                const response = await axios.get(`http://localhost:3000/api/members/project/${id}`);
                 const userData = Array.isArray(response.data) ? response.data : [];
-                setUsers(userData);
-                setFilteredUsers(userData);
+
+                // Obtener detalles de cada usuario
+                const usersWithDetails = await Promise.all(
+                    userData.map(async (member) => {
+                        try {
+                            const userResponse = await axios.get(`http://localhost:3000/api/users/${member.userId}`);
+                            return { ...member, userDetails: userResponse.data };
+                        } catch (err) {
+                            console.error(`Error fetching user info for ${member.userId}:`, err);
+                            return { ...member, userDetails: null }; // Si ocurre un error, devolvemos el miembro sin detalles
+                        }
+                    })
+                );
+                setUsers(usersWithDetails); // Establecemos los usuarios con la información adicional
+                setFilteredUsers(usersWithDetails);
             } catch (err) {
                 console.error("Error fetching users:", err);
                 setError("No se pudo cargar la lista de usuarios. Intenta nuevamente.");
@@ -94,23 +111,30 @@ export default function ProjectDetails() {
         setFilteredUsers(
             users.filter(
                 (user) =>
-                    user.name.toLowerCase().includes(search.toLowerCase()) ||
-                    user.email.toLowerCase().includes(search.toLowerCase())
+                    user.userDetails?.name.toLowerCase().includes(search.toLowerCase()) ||
+                    user.userDetails?.email.toLowerCase().includes(search.toLowerCase())
             )
         );
     }, [search, users]);
 
     useEffect(() => {
-        // Filtrar tareas por nombre o estado
+        // Filtrar tareas por nombre, estado, fecha y asignado
         setFilteredTasks(
-            tasks.filter(
-                (task) =>
-                    task.title.toLowerCase().includes(taskSearch.toLowerCase()) ||
-                    task.status.toLowerCase().includes(taskSearch.toLowerCase())
-            )
-        );
-    }, [taskSearch, tasks]);
+            tasks.filter((task) => {
 
+
+                const dueDate = task.limit_date ? task.limit_date.slice(0, 10) : ''; // Validar que dueDate no sea undefined
+
+                return (
+                    (task.title.toLowerCase().includes(taskSearch.toLowerCase()) ||
+                        task.status.toLowerCase().includes(taskSearch.toLowerCase())) &&
+                    (selectedStatus ? task.status === selectedStatus : true) &&
+                    (selectedDate ? dueDate === selectedDate : true) &&  // Comparar solo la fecha (YYYY-MM-DD)
+                    (selectedAssigned ? task.userId === selectedAssigned : true)
+                );
+            })
+        );
+    }, [taskSearch, tasks, selectedStatus, selectedDate, selectedAssigned]);
     const handleAddMember = async () => {
         try {
             if (!selectedUser) {
@@ -118,7 +142,7 @@ export default function ProjectDetails() {
                 return;
             }
 
-            const miembro = await axios.post("http://localhost:3000/api/members", {
+            await axios.post("http://localhost:3000/api/members", {
                 userId: selectedUser,
                 projectsId: id,
                 role: selectedRole,
@@ -139,7 +163,7 @@ export default function ProjectDetails() {
     };
 
     const handleSelectUser = (user) => {
-        setSearch(user.name);
+        setSearch(user.userDetails.name);
         setSelectedUser(user.id);
         setIsOpen(false);
     };
@@ -174,19 +198,53 @@ export default function ProjectDetails() {
                         Crear
                     </button>
                 </div>
-                <input
-                    className="w-full h-12 px-4 mb-4 border border-gray-300 rounded-lg text-sm"
-                    type="text"
-                    placeholder="Buscar tareas por nombre o estado"
-                    value={taskSearch}
-                    onChange={(e) => setTaskSearch(e.target.value)}
-                />
+
+                {/* Filtros */}
+                <div className="flex space-x-4 mb-4">
+                    <input
+                        className="w-full h-12 px-4 border border-gray-300 rounded-lg text-sm"
+                        type="text"
+                        placeholder="Buscar tareas por nombre o estado"
+                        value={taskSearch}
+                        onChange={(e) => setTaskSearch(e.target.value)}
+                    />
+                    <select
+                        value={selectedStatus}
+                        onChange={(e) => setSelectedStatus(e.target.value)}
+                        className="h-12 px-4 border border-gray-300 rounded-lg text-sm"
+                    >
+                        <option value="">Estado</option>
+                        <option value="IN_PROGRESS">En Progreso</option>
+                        <option value="COMPLETED">Completado</option>
+                        <option value="PENDING">Pendiente</option>
+                    </select>
+                    <input
+                        type="date"
+                        value={selectedDate}
+                        onChange={(e) => setSelectedDate(e.target.value)}
+                        className="h-12 px-4 border border-gray-300 rounded-lg text-sm"
+                    />
+                    <select
+                        value={selectedAssigned}
+                        onChange={(e) => setSelectedAssigned(e.target.value)}
+                        className="h-12 px-4 border border-gray-300 rounded-lg text-sm"
+                    >
+                        <option value="">Asignado a</option>
+                        {users.map((user) => (
+                            <option key={user.id} value={user.userDetails.id}>
+                                {user.userDetails?.name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
                 <CreateTaskModal
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
                     projectId={id}
                     onTaskCreated={(newTask) => setTasks((prev) => [...prev, newTask])}
                 />
+
                 <div className="flex flex-col gap-3">
                     {filteredTasks.map((task) => (
                         <Task key={task.id} task={task} projectId={id} />
@@ -213,7 +271,7 @@ export default function ProjectDetails() {
                                     className="px-4 py-2 cursor-pointer hover:bg-gray-100"
                                     onClick={() => handleSelectUser(user)}
                                 >
-                                    <span>{user.name} ({user.email})</span>
+                                    <span>{user.userDetails?.name} ({user.userDetails?.email})</span>
                                 </div>
                             ))}
                         </div>
@@ -239,7 +297,6 @@ export default function ProjectDetails() {
                 >
                     Agregar
                 </button>
-
 
                 <MembersList members={members} />
             </div>

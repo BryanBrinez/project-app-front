@@ -36,7 +36,6 @@ export async function middleware(req) {
     // - Validar que el usuario sea miembro de un proyecto específico.
     // - Validar roles o permisos.
 
-    console.log("Usuario verificado:", user);
     return NextResponse.next();
   } catch (err) {
     console.error("Error al verificar el token:", err.message);
