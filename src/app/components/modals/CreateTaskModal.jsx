@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 export default function CreateTaskModal({ isOpen, onClose, projectId, onTaskCreated }) {
@@ -6,8 +6,45 @@ export default function CreateTaskModal({ isOpen, onClose, projectId, onTaskCrea
     title: "",
     status: "PENDING",
     userId: "",
+    limit_date: "",
   });
   const [error, setError] = useState("");
+  const [users, setUsers] = useState([]); // Aquí almacenaremos los usuarios obtenidos
+  const [loading, setLoading] = useState(true); // Para manejar el estado de carga
+
+  useEffect(() => {
+    // Función para obtener los miembros del proyecto
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get(`http://localhost:3000/api/members/project/${projectId}`);
+        const members = response.data;
+
+        // Ahora, obtenemos más detalles de cada usuario
+        const usersWithDetails = await Promise.all(
+          members.map(async (member) => {
+            try {
+              const userResponse = await axios.get(`http://localhost:3000/api/users/${member.userId}`);
+              return { ...member, userDetails: userResponse.data };
+            } catch (err) {
+              console.error(`Error fetching user info for ${member.userId}:`, err);
+              return { ...member, userDetails: null }; // Si ocurre un error, devolvemos el miembro sin detalles
+            }
+          })
+        );
+        console.log("los usersss",usersWithDetails)
+        setUsers(usersWithDetails); // Establecemos los usuarios con la información adicional
+        setLoading(false); // Ya terminamos de cargar
+      } catch (err) {
+        console.error("Error fetching users:", err);
+        setError("No se pudieron cargar los usuarios.");
+        setLoading(false);
+      }
+    };
+
+    if (projectId) {
+      fetchUsers();
+    }
+  }, [projectId]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -21,7 +58,7 @@ export default function CreateTaskModal({ isOpen, onClose, projectId, onTaskCrea
     e.preventDefault();
     setError("");
 
-    const { title, status, userId } = formState;
+    const { title, status, userId, limit_date } = formState;
 
     if (!title || !userId) {
       setError("El título y el usuario son obligatorios.");
@@ -29,15 +66,18 @@ export default function CreateTaskModal({ isOpen, onClose, projectId, onTaskCrea
     }
 
     try {
+      const formattedLimitDate = limit_date ? new Date(limit_date).toISOString() : null;
+
       const response = await axios.post("http://localhost:3000/api/task", {
         title,
         status,
         userId,
         projectId,
+        limit_date: formattedLimitDate,
       });
 
       onTaskCreated(response.data);
-      setFormState({ title: "", status: "Pending", userId: "" });
+      setFormState({ title: "", status: "PENDING", userId: "", limit_date: "" });
       onClose();
     } catch (err) {
       console.error("Error creating task:", err);
@@ -91,15 +131,38 @@ export default function CreateTaskModal({ isOpen, onClose, projectId, onTaskCrea
 
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              ID de Usuario
+              Usuario
+            </label>
+            {loading ? (
+              <p>Cargando usuarios...</p> // Mensaje mientras carga
+            ) : (
+              <select
+                name="userId"
+                value={formState.userId}
+                onChange={handleInputChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                required
+              >
+                <option value="">Selecciona un usuario</option>
+                {users.map((user) => (
+                  <option key={user.userId} value={user.userId}>
+                    {user.userDetails ? `${user.userDetails.name} (${user.userDetails.email})` : `Usuario ${user.userDetails.name}`}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Fecha Límite
             </label>
             <input
-              type="text"
-              name="userId"
-              value={formState.userId}
+              type="date"
+              name="limit_date"
+              value={formState.limit_date}
               onChange={handleInputChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-              required
             />
           </div>
 

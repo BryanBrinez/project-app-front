@@ -21,7 +21,7 @@ export default function SignUp() {
         password,
       });
       console.log("Registration successful:", response.data);
-      document.cookie = `token=${response.token}; path=/;`;
+      document.cookie = `token=${response.data.token}; path=/;`;
       router.push("/dashboard");
       // Redirigir al usuario o mostrar un mensaje de éxito aquí
     } catch (err) {
@@ -84,9 +84,9 @@ export default function SignUp() {
         </form>
 
         <div className="mt-6 text-center text-sm text-gray-600">
-          ¿Ya tienes cuenta?
+          ¿Ya tienes cuenta? {" "}
           <Link href="/" className="text-indigo-600 hover:text-indigo-500 font-medium">
-            Inicia sesión
+          Inicia sesión
           </Link>
         </div>
       </div>

@@ -14,6 +14,8 @@ export default function ProjectDetails() {
     const [project, setProject] = useState([]);
     const [users, setUsers] = useState([]);
     const [search, setSearch] = useState("");
+    const [taskSearch, setTaskSearch] = useState(""); // Estado para la búsqueda de tareas
+    const [filteredTasks, setFilteredTasks] = useState([]); // Tareas filtradas
     const [selectedUser, setSelectedUser] = useState("");
     const [selectedRole, setSelectedRole] = useState("MIEMBRO");
     const [filteredUsers, setFilteredUsers] = useState([]);
@@ -21,6 +23,19 @@ export default function ProjectDetails() {
     const [error, setError] = useState("");
     const [isOpen, setIsOpen] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [members, setMembers] = useState([]);
+
+    const fetchMembers = async () => {
+        try {
+            const response = await axios.get(
+                `http://localhost:3000/api/members/project/${id}`
+            );
+            setMembers(response.data || []);
+        } catch (err) {
+            console.error("Error fetching members:", err);
+            setError("No se pudieron cargar los miembros del proyecto. Intenta nuevamente.");
+        }
+    };
 
     useEffect(() => {
         if (!id) return;
@@ -61,6 +76,7 @@ export default function ProjectDetails() {
             try {
                 const response = await axios.get(`http://localhost:3000/api/task/project/${id}`);
                 setTasks(response.data || []);
+                setFilteredTasks(response.data || []); // Inicialmente, todas las tareas están visibles
             } catch (err) {
                 console.error("Error fetching tasks:", err);
                 setError("No se pudieron cargar las tareas. Intenta nuevamente.");
@@ -70,9 +86,11 @@ export default function ProjectDetails() {
         fetchProjectData();
         fetchUsers();
         fetchTasks();
+        fetchMembers();
     }, [id]);
 
     useEffect(() => {
+        // Filtrar usuarios
         setFilteredUsers(
             users.filter(
                 (user) =>
@@ -81,6 +99,17 @@ export default function ProjectDetails() {
             )
         );
     }, [search, users]);
+
+    useEffect(() => {
+        // Filtrar tareas por nombre o estado
+        setFilteredTasks(
+            tasks.filter(
+                (task) =>
+                    task.title.toLowerCase().includes(taskSearch.toLowerCase()) ||
+                    task.status.toLowerCase().includes(taskSearch.toLowerCase())
+            )
+        );
+    }, [taskSearch, tasks]);
 
     const handleAddMember = async () => {
         try {
@@ -110,7 +139,6 @@ export default function ProjectDetails() {
     };
 
     const handleSelectUser = (user) => {
-        console.log("el usuario seleccionado",user)
         setSearch(user.name);
         setSelectedUser(user.id);
         setIsOpen(false);
@@ -127,26 +155,6 @@ export default function ProjectDetails() {
             </div>
         );
     }
-    const [members, setMembers] = useState([]);
-
-    const fetchMembers = async () => {
-        try {
-            const response = await axios.get(
-                `http://localhost:3000/api/members/project/${id}`
-            );
-            setMembers(response.data || []);
-        } catch (err) {
-            console.error("Error fetching members:", err);
-            setError("No se pudieron cargar los miembros del proyecto. Intenta nuevamente.");
-        }
-    };
-    useEffect(() => {
-        
-
-        if (id) {
-            fetchMembers();
-        }
-    }, [id]);
 
     return (
         <div className="min-h-screen p-6 bg-gray-100 w-screen lg:w-1/2 text-black">
@@ -166,6 +174,13 @@ export default function ProjectDetails() {
                         Crear
                     </button>
                 </div>
+                <input
+                    className="w-full h-12 px-4 mb-4 border border-gray-300 rounded-lg text-sm"
+                    type="text"
+                    placeholder="Buscar tareas por nombre o estado"
+                    value={taskSearch}
+                    onChange={(e) => setTaskSearch(e.target.value)}
+                />
                 <CreateTaskModal
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
@@ -173,7 +188,7 @@ export default function ProjectDetails() {
                     onTaskCreated={(newTask) => setTasks((prev) => [...prev, newTask])}
                 />
                 <div className="flex flex-col gap-3">
-                    {tasks.map((task) => (
+                    {filteredTasks.map((task) => (
                         <Task key={task.id} task={task} projectId={id} />
                     ))}
                 </div>

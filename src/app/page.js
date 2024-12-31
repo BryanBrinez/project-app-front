@@ -88,7 +88,7 @@ export default function SignUp() {
               <input type="checkbox" className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
               <span className="ml-2 text-sm text-gray-600">Remember me</span>
             </label>
-            <a href="#" className="text-sm text-indigo-600 hover:text-indigo-500">Forgot password?</a>
+
           </div>
 
           <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg transition-colors">

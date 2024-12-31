@@ -11,9 +11,11 @@ export default function Task({ task, projectId }) {
             >
                 <div className="flex-1">
                     <h3 className="text-lg font-semibold text-gray-600 ">{task.title}</h3>
+                    <p className="mt-2 text-sm text-gray-500">Fecha limite:{task.limit_date}</p>
                     
                 </div>
                 <div className="ml-4">
+
                     <span
                         className={`px-3 py-1 text-sm font-semibold rounded-lg ${
                             task.status === "COMPLETED"
