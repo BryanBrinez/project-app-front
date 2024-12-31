@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -9,6 +9,19 @@ export default function SignUp() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(""); // Estado para errores
   const router = useRouter();
+
+  useEffect(() => {
+    // Verificar si ya hay un token en las cookies
+    const token = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("token="))
+      ?.split("=")[1];
+
+    // Si el token existe, redirigir al dashboard
+    if (token) {
+      router.push("/dashboard");
+    }
+  }, [router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

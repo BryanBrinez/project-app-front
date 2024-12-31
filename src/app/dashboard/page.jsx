@@ -45,10 +45,8 @@ export default function Dashboard() {
         try {
           projectsResponse = await axios.get(`http://localhost:3000/api/projects/owner/${response.data.user.email}`);
 
-          console.log("sisa", projectsResponse.data)
-          if (projectsResponse.data.length === 0) {
-            setError("No tienes proyectos creados. ¿Quieres crear uno?");
-          } else {
+
+          if (projectsResponse.data.length !== 0) {
             setProjects(projectsResponse.data);
           }
         } catch (err) {
@@ -86,41 +84,37 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen p-6  w-screen bg lg:w-1/2  text-black flex flex-col gap-10" >
-
+    <div className="min-h-screen p-6 w-screen bg lg:w-1/2 text-black flex flex-col gap-10">
       <div>
-        <div className="flex items-center justify-between ">
+        <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Hola, {user.name}</h1>
-
-
           <LogoutButton />
         </div>
 
-
         <p className="text-gray-600 mt-2">
           {projects.length === 0
-            ? "No tienes ningún proyecto creado. ¿Deseas crear uno?"
+            ? "No tienes proyectos creados. ¿Deseas crear uno?"
             : "Estos son tus proyectos:"}
         </p>
-
       </div>
 
-      <div className="flex flex-col w-full flex-grow ">
+      <div className="flex flex-col w-full flex-grow">
+        <div className="w-full flex items-center justify-between">
+          {projects.length > 0 && (
+            <h2 className="text-xl font-semibold mb-4">Tus proyectos</h2>
+          )}
+          <div className="flex-grow border-b-2 border-dotted mx-4 relative top-1/2 transform -translate-y-1/2 mt-[-10px]"></div>
 
-        <div className="w-full flex items-center justify-between ">
-          <h2 className="text-xl font-semibold mb-4">Proyectos</h2>
-          <div className="flex-grow border-b-2 border-dotted mx-4 relative top-1/2 transform -translate-y-1/2 mt-[-10px] "></div>
           <button
             onClick={() => setIsModalOpen(true)}
-            className=" px-4 py-2 bg-[#3f51b5] text-white rounded-lg hover:bg-[#002284]"
+            className="px-4 py-2 bg-[#3f51b5] text-white rounded-lg hover:bg-[#002284]"
           >
             Crear
           </button>
+
         </div>
 
-
-
-        {/* Solo muestra la lista de proyectos si hay proyectos */}
+        {/* Si tienes proyectos, muestra la lista de proyectos */}
         {projects.length > 0 && (
           <div className="flex flex-col gap-4 mt-6 w-full">
             {projects.map((project) => (
@@ -128,15 +122,24 @@ export default function Dashboard() {
             ))}
           </div>
         )}
+        <div className="w-full flex items-center justify-between mt-4">
+          {projects.length > 0 && (
+            <h2 className="text-xl font-semibold mb-4">Proyectos a los que perteneces</h2>
+          )}
 
-        {/* Si no hay proyectos, mostrar mensaje con opción de crear */}
-        {projects.length === 0 && (
-          <div className="mt-6 text-gray-600">
-            <p>No tienes proyectos. ¿Quieres crear uno?</p>
+        </div>
+
+
+        {projects.length > 0 && (
+          <div className="flex flex-col gap-4 mt-6 w-full">
+            {projects.map((project) => (
+              <ProjectCard key={project.id} project={project} />
+            ))}
           </div>
         )}
-
       </div>
+
+
 
 
       <CreateProjectModal

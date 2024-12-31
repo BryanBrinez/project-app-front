@@ -79,7 +79,7 @@ const ChatBox = ({ taskId }) => {
 
   return (
     <div className="flex flex-col bg-white p-6 rounded-lg shadow-lg flex-grow w-full">
-      <h3 className="text-xl font-semibold mb-4">Chat de la tarea {taskId}</h3>
+      <h3 className="text-xl font-semibold mb-4">Chat de la tarea </h3>
 
       {/* Mensajes del chat */}
       <div className="h-60 overflow-y-auto border-b border-gray-200 mb-4 flex-grow">
